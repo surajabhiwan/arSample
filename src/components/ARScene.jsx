@@ -1,117 +1,110 @@
-import React, { useRef, useState, useEffect } from "react";
-import * as THREE from "three";
-import "aframe";
+import React, { useRef, useEffect, useState } from "react";
+import * as BABYLON from "babylonjs";
 import jsQR from "jsqr";
 
 const ARScene = () => {
-  const cameraRef = useRef(null);
+  const canvasRef = useRef(null);
   const videoRef = useRef(null);
-  const [qrData, setQrData] = useState("");
-  const [isCameraOn, setIsCameraOn] = useState(false);
-  const [backCamera, setBackCamera] = useState(null);
-
-  // Toggle camera state (on/off)
-  const toggleCamera = async () => {
-    if (isCameraOn) {
-      // Stop the camera if it's on
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-      setQrData("");
-      setIsCameraOn(false);
-    } else {
-      // Start the camera if it's off
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const backCam = devices.find(device => device.kind === "videoinput" && device.label.toLowerCase().includes("back"));
-      if (backCam) {
-        setBackCamera(backCam.deviceId);
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: backCam.deviceId },
-        });
-        videoRef.current.srcObject = stream;
-      }
-      setIsCameraOn(true);
-    }
-  };
+  const [qrData, setQrData] = useState(null);
 
   useEffect(() => {
-    if (!isCameraOn) return;
+    // Initialize Babylon.js Scene
+    const engine = new BABYLON.Engine(canvasRef.current, true);
+    const scene = new BABYLON.Scene(engine);
 
-    const videoElement = videoRef.current;
-    const canvasElement = document.createElement("canvas");
-    const canvasContext = canvasElement.getContext("2d");
+    // Create Camera
+    const camera = new BABYLON.ArcRotateCamera(
+      "camera1",
+      Math.PI / 2,
+      Math.PI / 2,
+      10,
+      BABYLON.Vector3.Zero(),
+      scene
+    );
+    camera.attachControl(canvasRef.current, true);
 
+    // Set up light
+    new BABYLON.HemisphericLight("light1", BABYLON.Vector3.Up(), scene);
+
+    // Create a 3D text (or any 3D object) for displaying QR data
+    const create3DText = (data) => {
+      const textMesh = BABYLON.MeshBuilder.CreateText("qrText", {
+        text: data,
+        size: 3,
+        color: "cyan",
+        font: "Arial",
+      }, scene);
+      textMesh.position = new BABYLON.Vector3(0, 2, -5); // Position it in front of camera
+    };
+
+    // QR Scanning Logic
     const scanQRCode = () => {
-      if (videoElement && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-        canvasElement.height = videoElement.videoHeight;
-        canvasElement.width = videoElement.videoWidth;
-        canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
-        const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        const qrCode = jsQR(imageData.data, canvasElement.width, canvasElement.height);
-
+      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+        
         if (qrCode) {
-          setQrData(qrCode.data); // Set the QR code data
+          setQrData(qrCode.data); // Store QR code data
+          create3DText(qrCode.data); // Display QR data as 3D text
         }
       }
+
       requestAnimationFrame(scanQRCode);
     };
 
+    // Start QR code scanning
     scanQRCode();
-  }, [isCameraOn]);
+
+    // Start Babylon.js render loop
+    engine.runRenderLoop(() => {
+      scene.render();
+    });
+
+    // Resize handler for window resizing
+    window.addEventListener("resize", () => {
+      engine.resize();
+    });
+
+    return () => {
+      // Cleanup on component unmount
+      window.removeEventListener("resize", () => engine.resize());
+      engine.dispose();
+    };
+  }, []);
+
+  const startCamera = () => {
+    // Get access to camera and start video feed
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    })
+    .then((stream) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    })
+    .catch((err) => console.error("Error accessing camera:", err));
+  };
 
   return (
     <div>
-      <button onClick={toggleCamera} style={styles.button}>
-        {isCameraOn ? "Stop Camera" : "Start Camera"}
-      </button>
-
-      <a-scene>
-        {/* AR Camera and Marker */}
-        <a-camera position="0 1.6 0" wasd-controls-enabled="false"></a-camera>
-
-        {qrData && (
-          <a-text
-            value={qrData}
-            position="0 1.5 -3"
-            scale="5 5 5"
-            color="#00F"
-            side="double"
-          ></a-text>
-        )}
-
-        <a-entity camera look-controls></a-entity>
-      </a-scene>
-
+      <button onClick={startCamera}>Start Camera</button>
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
       <video
         ref={videoRef}
-        style={{ display: isCameraOn ? "block" : "none" }}
-        width="100%"
-        height="100%"
+        style={{ display: "none" }}
         autoPlay
         playsInline
         muted
       ></video>
+      {qrData && <div className="qr-data-display">QR Code Data: {qrData}</div>}
     </div>
   );
-};
-
-const styles = {
-  button: {
-    position: "absolute",
-    top: "20px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    fontSize: "16px",
-    zIndex: 1,
-  },
 };
 
 export default ARScene;
