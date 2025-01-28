@@ -6,9 +6,9 @@ const ARScene = () => {
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
   const [qrData, setQrData] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
   useEffect(() => {
-    // Initialize Babylon.js Scene
     const engine = new BABYLON.Engine(canvasRef.current, true);
     const scene = new BABYLON.Scene(engine);
 
@@ -26,7 +26,7 @@ const ARScene = () => {
     // Set up light
     new BABYLON.HemisphericLight("light1", BABYLON.Vector3.Up(), scene);
 
-    // Create a 3D text (or any 3D object) for displaying QR data
+    // Create 3D text when QR code is found
     const create3DText = (data) => {
       const textMesh = BABYLON.MeshBuilder.CreateText("qrText", {
         text: data,
@@ -45,10 +45,10 @@ const ARScene = () => {
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        
+
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-        
+
         if (qrCode) {
           setQrData(qrCode.data); // Store QR code data
           create3DText(qrCode.data); // Display QR data as 3D text
@@ -78,30 +78,43 @@ const ARScene = () => {
     };
   }, []);
 
-  const startCamera = () => {
-    // Get access to camera and start video feed
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-    })
-    .then((stream) => {
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        setIsCameraReady(true); // Mark camera as ready when stream is successfully set
       }
-    })
-    .catch((err) => console.error("Error accessing camera:", err));
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+    }
   };
 
   return (
     <div>
-      <button onClick={startCamera}>Start Camera</button>
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
-      <video
-        ref={videoRef}
-        style={{ display: "none" }}
-        autoPlay
-        playsInline
-        muted
-      ></video>
+      {!isCameraReady ? (
+        <button onClick={startCamera}>Start Camera</button>
+      ) : (
+        <div style={{ position: "relative" }}>
+          <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+          <video
+            ref={videoRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+            autoPlay
+            playsInline
+            muted
+          ></video>
+        </div>
+      )}
       {qrData && <div className="qr-data-display">QR Code Data: {qrData}</div>}
     </div>
   );
