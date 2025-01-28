@@ -1,25 +1,24 @@
-import React, { useState } from "react";
-import QRScanner from "./components/QRScanner";
-import ARViewer from "./components/ARViewer";
-import "./index.css";
+import React, { useState } from 'react';
+import QRScanner from './components/QRScanner';
+import ARView from './components/ARView';
 
 const App = () => {
   const [content, setContent] = useState(null);
 
   const handleScan = (data) => {
-    try {
-      const parsedData = JSON.parse(data);
-      setContent(parsedData);
-    } catch (error) {
-      console.error("Invalid QR Code");
+    if (data === 'qr-text') {
+      setContent({ type: 'text', data: 'Hello AR!' });
+    } else if (data === 'qr-image') {
+      setContent({ type: 'image', data: '/images/example-image.jpg' });
+    } else if (data === 'qr-video') {
+      setContent({ type: 'video', data: document.createElement('video') });
     }
   };
 
   return (
     <div>
-      <h1>AR QR Scanner</h1>
       <QRScanner onScan={handleScan} />
-      <ARViewer content={content} />
+      <ARView content={content} />
     </div>
   );
 };
