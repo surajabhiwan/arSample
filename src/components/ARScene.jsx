@@ -91,7 +91,7 @@ const ARScene = () => {
         {qrType === "video" && (
           <a-video
             src={qrData}
-            position="0 0 0"
+            position="0 1.5 -3"
             width="4"
             height="2.5"
             scale="3 3 3"
@@ -101,7 +101,7 @@ const ARScene = () => {
         {qrType === "image" && (
           <a-image
             src={qrData}
-              position="0 0 0"
+            position="0 1.5 -3"
             width="2"
             height="2"
             scale="3 3 3"
@@ -111,7 +111,7 @@ const ARScene = () => {
         {qrType === "url" && (
           <a-text
             value={qrData}
-          position="0 0 0"
+            position="0 1.5 -3"
             scale="3 3 3"
             color="#00F"
             side="double"
@@ -121,7 +121,7 @@ const ARScene = () => {
         {qrType === "text" && (
           <a-text
             value={qrData}
-             position="0 0 0"
+            position="0 1.5 -3"
             scale="3 3 3"
             color="#00F"
             side="double"
