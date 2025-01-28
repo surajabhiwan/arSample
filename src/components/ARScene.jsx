@@ -67,7 +67,10 @@ const ARScene = () => {
               setQrType("url");
             }
           } else {
-            setQrType("text");
+            // setQrType("text");
+            setQrType("model");
+
+            model
           }
         }
       }
@@ -91,7 +94,7 @@ const ARScene = () => {
         {qrType === "video" && (
           <a-video
             src={qrData}
-    position="1.5 1.5 -8"
+            position="1.5 1.5 -8"
             width="4"
             height="2.5"
             scale="3 3 3"
@@ -101,7 +104,7 @@ const ARScene = () => {
         {qrType === "image" && (
           <a-image
             src={qrData}
-   position="1.5 1.5 -8"
+            position="1.5 1.5 -8"
             width="2"
             height="2"
             scale="3 3 3"
@@ -111,7 +114,7 @@ const ARScene = () => {
         {qrType === "url" && (
           <a-text
             value={qrData}
-        position="1.5 1.5 -8"
+            position="1.5 1.5 -8"
             scale="3 3 3"
             color="#00F"
             side="double"
@@ -121,13 +124,20 @@ const ARScene = () => {
         {qrType === "text" && (
           <a-text
             value={qrData}
-          position="1.5 1.5 -8"
+            position="1.5 1.5 -8"
             scale="3 3 3"
             color="#00F"
             side="double"
           ></a-text>
         )}
-
+        {qrType === "model" && (
+          <a-entity
+            gltf-model={"../../newMapThumsup-transformed.glb"} // Path to your .glb file
+            position="0 1.5 -5" // Centered in the scene
+            scale="1 1 1" // Adjust scale as needed
+            rotation="0 180 0" // Optional rotation
+          ></a-entity>
+        )}
         <a-entity camera look-controls></a-entity>
       </a-scene>
 
