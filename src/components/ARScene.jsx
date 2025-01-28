@@ -1,97 +1,117 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import * as THREE from "three";
 import "aframe";
-import "ar.js";
+import jsQR from "jsqr";
 
 const ARScene = () => {
-  const [qrData, setQrData] = useState(null);
+  const cameraRef = useRef(null);
   const videoRef = useRef(null);
+  const [qrData, setQrData] = useState("");
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [backCamera, setBackCamera] = useState(null);
 
-  useEffect(() => {
-    const initializeAR = () => {
-      // We need to make sure AR.js and A-Frame are loaded properly for AR functionality
-      if (!window.AFRAME || !window.ARjs) return;
+  // Toggle camera state (on/off)
+  const toggleCamera = async () => {
+    if (isCameraOn) {
+      // Stop the camera if it's on
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+      }
+      setQrData("");
+      setIsCameraOn(false);
+    } else {
+      // Start the camera if it's off
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const backCam = devices.find(device => device.kind === "videoinput" && device.label.toLowerCase().includes("back"));
+      if (backCam) {
+        setBackCamera(backCam.deviceId);
 
-      const scene = document.createElement("a-scene");
-      scene.setAttribute("embedded", "true");
-      scene.setAttribute("arjs", "trackingMethod: best; sourceType: webcam;");
-
-      const camera = document.createElement("a-camera");
-      camera.setAttribute("position", "0 0 0");
-      scene.appendChild(camera);
-
-      // Add QR Code detection to the scene
-      const marker = document.createElement("a-marker");
-      marker.setAttribute("type", "barcode");
-      marker.setAttribute("value", "1"); // Placeholder, can be updated with QR code value
-
-      const qrText = document.createElement("a-text");
-      qrText.setAttribute("value", "Scanning QR...");
-      qrText.setAttribute("color", "#00F");
-      qrText.setAttribute("scale", "5 5 5");
-      qrText.setAttribute("position", "0 0 0");
-      marker.appendChild(qrText);
-
-      scene.appendChild(marker);
-
-      // Append the AR scene to the DOM
-      document.body.appendChild(scene);
-    };
-
-    // Initialize AR.js when the component is mounted
-    initializeAR();
-  }, []);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      if (videoRef.current) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: backCam.deviceId },
+        });
         videoRef.current.srcObject = stream;
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
+      setIsCameraOn(true);
     }
   };
 
-  const handleQRData = (data) => {
-    setQrData(data);
-  };
+  useEffect(() => {
+    if (!isCameraOn) return;
+
+    const videoElement = videoRef.current;
+    const canvasElement = document.createElement("canvas");
+    const canvasContext = canvasElement.getContext("2d");
+
+    const scanQRCode = () => {
+      if (videoElement && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+        canvasElement.height = videoElement.videoHeight;
+        canvasElement.width = videoElement.videoWidth;
+        canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+        const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        const qrCode = jsQR(imageData.data, canvasElement.width, canvasElement.height);
+
+        if (qrCode) {
+          setQrData(qrCode.data); // Set the QR code data
+        }
+      }
+      requestAnimationFrame(scanQRCode);
+    };
+
+    scanQRCode();
+  }, [isCameraOn]);
 
   return (
     <div>
-      <button onClick={startCamera}>Start Camera</button>
+      <button onClick={toggleCamera} style={styles.button}>
+        {isCameraOn ? "Stop Camera" : "Start Camera"}
+      </button>
+
+      <a-scene>
+        {/* AR Camera and Marker */}
+        <a-camera position="0 1.6 0" wasd-controls-enabled="false"></a-camera>
+
+        {qrData && (
+          <a-text
+            value={qrData}
+            position="0 1.5 -3"
+            scale="5 5 5"
+            color="#00F"
+            side="double"
+          ></a-text>
+        )}
+
+        <a-entity camera look-controls></a-entity>
+      </a-scene>
+
       <video
         ref={videoRef}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
+        style={{ display: isCameraOn ? "block" : "none" }}
+        width="100%"
+        height="100%"
         autoPlay
         playsInline
         muted
       ></video>
-      {qrData && (
-        <div
-          style={{
-            position: "absolute",
-            top: "20px",
-            left: "20px",
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            padding: "10px",
-            color: "#fff",
-            borderRadius: "5px",
-          }}
-        >
-          QR Code Data: {qrData}
-        </div>
-      )}
     </div>
   );
+};
+
+const styles = {
+  button: {
+    position: "absolute",
+    top: "20px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: "10px 20px",
+    borderRadius: "5px",
+    fontSize: "16px",
+    zIndex: 1,
+  },
 };
 
 export default ARScene;
