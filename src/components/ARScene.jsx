@@ -7,6 +7,7 @@ const ARScene = () => {
   const cameraRef = useRef(null);
   const videoRef = useRef(null);
   const [qrData, setQrData] = useState("");
+  const [qrType, setQrType] = useState(""); // To store the type of QR data
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [backCamera, setBackCamera] = useState(null);
 
@@ -20,6 +21,7 @@ const ARScene = () => {
         tracks.forEach(track => track.stop());
       }
       setQrData("");
+      setQrType(""); // Reset QR type
       setIsCameraOn(false);
     } else {
       // Start the camera if it's off
@@ -55,6 +57,18 @@ const ARScene = () => {
 
         if (qrCode) {
           setQrData(qrCode.data); // Set the QR code data
+          // Detect the type of the QR code content
+          if (qrCode.data.startsWith("http")) {
+            if (qrCode.data.includes("video")) {
+              setQrType("video");
+            } else if (qrCode.data.includes("image")) {
+              setQrType("image");
+            } else {
+              setQrType("url");
+            }
+          } else {
+            setQrType("text");
+          }
         }
       }
       requestAnimationFrame(scanQRCode);
@@ -72,7 +86,19 @@ const ARScene = () => {
       <a-scene>
         {/* AR Camera and Marker */}
         <a-camera position="0 1.6 0" wasd-controls-enabled="false"></a-camera>
-        {qrData && qrData.startsWith("http") && (
+
+        {/* Render based on QR type */}
+        {qrType === "video" && (
+          <a-video
+            src={qrData}
+            position="0 1.5 -3"
+            width="4"
+            height="2.5"
+            scale="3 3 3"
+          ></a-video>
+        )}
+
+        {qrType === "image" && (
           <a-image
             src={qrData}
             position="0 1.5 -3"
@@ -82,7 +108,7 @@ const ARScene = () => {
           ></a-image>
         )}
 
-        {!qrData.startsWith("http") && (
+        {qrType === "url" && (
           <a-text
             value={qrData}
             position="0 1.5 -3"
@@ -91,11 +117,12 @@ const ARScene = () => {
             side="double"
           ></a-text>
         )}
-        {qrData && (
+
+        {qrType === "text" && (
           <a-text
             value={qrData}
             position="0 1.5 -3"
-            scale="5 5 5"
+            scale="3 3 3"
             color="#00F"
             side="double"
           ></a-text>
