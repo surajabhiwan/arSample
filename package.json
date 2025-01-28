@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host ",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -15,11 +15,14 @@
     "@react-three/fiber": "^8.17.12",
     "aframe": "^1.6.0",
     "aframe-react": "^4.4.0",
+    "ar.js": "^2.2.2",
     "jsqr": "^1.4.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-zxing": "^2.0.2"
+    "react-qr-reader": "^3.0.0-beta-1",
+    "react-zxing": "^2.0.2",
+    "three": "^0.172.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
