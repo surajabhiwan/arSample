@@ -77,10 +77,9 @@ const ARScene = () => {
           <a-text
             value={qrData}
             position="0 1.5 -3"
-            scale="5 5 5"
+            scale="3 3 3"
             color="#00F"
             side="double"
-            style={{ textAlign: "center" }}
           ></a-text>
         )}
 
@@ -89,7 +88,7 @@ const ARScene = () => {
 
       <video
         ref={videoRef}
-        style={styles.video}
+        style={{ display: isCameraOn ? "block" : "none" }}
         width="100%"
         height="100%"
         autoPlay
@@ -103,13 +102,9 @@ const ARScene = () => {
 const styles = {
   container: {
     position: "relative",
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "column",
-    backgroundColor: "#000",
+    height: "100vh",
+    backgroundColor: "#f0f0f0",
+    overflow: "hidden",
   },
   button: {
     position: "absolute",
@@ -118,27 +113,10 @@ const styles = {
     transform: "translateX(-50%)",
     backgroundColor: "#007bff",
     color: "#fff",
-    padding: "12px 20px",
-    borderRadius: "8px",
-    fontSize: "18px",
+    padding: "10px 20px",
+    borderRadius: "5px",
+    fontSize: "16px",
     zIndex: 1,
-    cursor: "pointer",
-    border: "none",
-    outline: "none",
-    transition: "background-color 0.3s",
-  },
-  buttonHover: {
-    backgroundColor: "#0056b3",
-  },
-  video: {
-    display: "none",
-    position: "absolute",
-    top: "0",
-    left: "0",
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    zIndex: 0,
   },
 };
 
