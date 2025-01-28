@@ -73,7 +73,17 @@ const ARScene = () => {
         {/* AR Camera and Marker */}
         <a-camera position="0 1.6 0" wasd-controls-enabled="false"></a-camera>
 
-        {qrData && (
+        {qrData && qrData.startsWith("http") && (
+          <a-image
+            src={qrData}
+            position="0 1.5 -3"
+            width="2"
+            height="2"
+            scale="3 3 3"
+          ></a-image>
+        )}
+
+        {!qrData.startsWith("http") && (
           <a-text
             value={qrData}
             position="0 1.5 -3"
