@@ -131,7 +131,7 @@ const styles = {
     backgroundColor: "#0056b3",
   },
   video: {
-    display: "none",
+    // display: "none",
     position: "absolute",
     top: "0",
     left: "0",
