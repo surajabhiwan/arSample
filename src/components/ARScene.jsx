@@ -64,7 +64,7 @@ const ARScene = () => {
   }, [isCameraOn]);
 
   return (
-    <div style={styles.container}>
+    <div>
       <button onClick={toggleCamera} style={styles.button}>
         {isCameraOn ? "Stop Camera" : "Start Camera"}
       </button>
@@ -77,20 +77,11 @@ const ARScene = () => {
           <a-text
             value={qrData}
             position="0 1.5 -3"
-            scale="3 3 3"
+            scale="5 5 5"
             color="#00F"
             side="double"
           ></a-text>
         )}
-{qrData && qrData.startsWith("http") && (
-  <a-image
-    src={qrData}
-    position="0 1.5 -3"
-    width="2"
-    height="2"
-    scale="3 3 3"
-  ></a-image>
-)}
 
         <a-entity camera look-controls></a-entity>
       </a-scene>
@@ -109,12 +100,6 @@ const ARScene = () => {
 };
 
 const styles = {
-  container: {
-    position: "relative",
-    height: "100vh",
-    backgroundColor: "#f0f0f0",
-    overflow: "hidden",
-  },
   button: {
     position: "absolute",
     top: "20px",
