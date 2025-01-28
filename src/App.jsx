@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
 import QrScanner from 'react-qr-scanner';  // Import react-qr-scanner for QR code scanning
 import 'aframe';  // Import A-Frame
@@ -7,9 +7,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function App() {
   const [qrCodeData, setQrCodeData] = useState(null);  // Store QR Code Data
   const [showQRScanner, setShowQRScanner] = useState(false);  // Toggle QR scanner visibility
-  const [cameraFacingMode, setCameraFacingMode] = useState('environment');  // Default to back camera (environment)
-  const [cameraList, setCameraList] = useState([]);  // Store available cameras
-  const qrScannerRef = useRef(null);  // Reference to QR Scanner component
 
   // Handle QR scan result
   const handleScan = (data) => {
@@ -24,26 +21,6 @@ function App() {
     console.error(err);
   };
 
-  // Toggle between front and back camera
-  const toggleCamera = () => {
-    setCameraFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
-  };
-
-  // Get list of available cameras on component mount
-  useEffect(() => {
-    const getCameras = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        setCameraList(videoDevices); // Store all available video devices
-      } catch (err) {
-        console.error('Error accessing media devices:', err);
-      }
-    };
-
-    getCameras();
-  }, []);
-
   return (
     <div className="App">
       <h1>AR with QR Scanner</h1>
@@ -53,13 +30,6 @@ function App() {
         {showQRScanner ? 'Close Scanner' : 'Open QR Scanner'}
       </Button>
 
-      {/* Button to switch between front and back camera */}
-      {showQRScanner && cameraList.length > 0 && (
-        <Button onClick={toggleCamera} variant="secondary" style={{ marginLeft: '10px' }}>
-          Switch to {cameraFacingMode === 'environment' ? 'Front' : 'Back'} Camera
-        </Button>
-      )}
-
       {/* Display the QR scanner when toggled */}
       {showQRScanner && (
         <QrScanner
@@ -67,8 +37,7 @@ function App() {
           style={{ width: '100%' }}  // Full-width scanner
           onScan={handleScan}  // Capture scanned data
           onError={handleError}  // Handle errors
-          facingMode={cameraFacingMode}  // Set camera facing mode (back or front)
-          ref={qrScannerRef}
+          facingMode="environment"  // Force back camera
         />
       )}
 
