@@ -64,7 +64,7 @@ const ARScene = () => {
   }, [isCameraOn]);
 
   return (
-    <div>
+    <div style={styles.container}>
       <button onClick={toggleCamera} style={styles.button}>
         {isCameraOn ? "Stop Camera" : "Start Camera"}
       </button>
@@ -80,6 +80,7 @@ const ARScene = () => {
             scale="5 5 5"
             color="#00F"
             side="double"
+            style={{ textAlign: "center" }}
           ></a-text>
         )}
 
@@ -88,7 +89,7 @@ const ARScene = () => {
 
       <video
         ref={videoRef}
-        style={{ display: isCameraOn ? "block" : "none" }}
+        style={styles.video}
         width="100%"
         height="100%"
         autoPlay
@@ -100,6 +101,16 @@ const ARScene = () => {
 };
 
 const styles = {
+  container: {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    backgroundColor: "#000",
+  },
   button: {
     position: "absolute",
     top: "20px",
@@ -107,10 +118,27 @@ const styles = {
     transform: "translateX(-50%)",
     backgroundColor: "#007bff",
     color: "#fff",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    fontSize: "16px",
+    padding: "12px 20px",
+    borderRadius: "8px",
+    fontSize: "18px",
     zIndex: 1,
+    cursor: "pointer",
+    border: "none",
+    outline: "none",
+    transition: "background-color 0.3s",
+  },
+  buttonHover: {
+    backgroundColor: "#0056b3",
+  },
+  video: {
+    display: "none",
+    position: "absolute",
+    top: "0",
+    left: "0",
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    zIndex: 0,
   },
 };
 
