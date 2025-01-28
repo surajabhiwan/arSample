@@ -1,22 +1,25 @@
 import React, { useState } from "react";
-import ARMenu from "./components/ARMenu";
-import ARScanner from "./components/ARScanner";
-import ARView from "./components/ARView";
-import "./styles/index.css";
+import QRScanner from "./components/QRScanner";
+import ARViewer from "./components/ARViewer";
+import "./index.css";
 
 const App = () => {
-  const [selectedFeature, setSelectedFeature] = useState(null);
+  const [content, setContent] = useState(null);
+
+  const handleScan = (data) => {
+    try {
+      const parsedData = JSON.parse(data);
+      setContent(parsedData);
+    } catch (error) {
+      console.error("Invalid QR Code");
+    }
+  };
 
   return (
-    <div className="app">
-      {!selectedFeature && (
-        <>
-          <h1>AR QR App</h1>
-          <ARMenu onFeatureSelect={setSelectedFeature} />
-          <ARScanner onFeatureScan={setSelectedFeature} />
-        </>
-      )}
-      {selectedFeature && <ARView feature={selectedFeature} onBack={() => setSelectedFeature(null)} />}
+    <div>
+      <h1>AR QR Scanner</h1>
+      <QRScanner onScan={handleScan} />
+      <ARViewer content={content} />
     </div>
   );
 };
